@@ -1,26 +1,20 @@
-import ConverterCard from "./components/ConverterCard";
-import RateTicker from "./components/RateTicker";
+import { Routes, Route } from "react-router-dom";
+import Layout from "./components/layout/Layout";
+import Home from "./pages/Home";
+import Rates from "./pages/Rates";
+import History from "./pages/History";
+import About from "./pages/About";
 import "./index.css";
 
 export default function App() {
   return (
-    <div className="app">
-      <header className="app-header">
-        <span className="app-mark">⇄</span>
-        <div>
-          <h1>Exchange Desk</h1>
-          <p className="app-subtitle">A quiet corner to check what your money is worth elsewhere.</p>
-        </div>
-      </header>
-
-      <main className="app-main">
-        <ConverterCard />
-        <RateTicker />
-      </main>
-
-      <footer className="app-footer">
-        <span>Frontend build — rates are mock data until the API is connected.</span>
-      </footer>
-    </div>
+    <Routes>
+      <Route element={<Layout />}>
+        <Route index element={<Home />} />
+        <Route path="rates" element={<Rates />} />
+        <Route path="history" element={<History />} />
+        <Route path="about" element={<About />} />
+      </Route>
+    </Routes>
   );
 }

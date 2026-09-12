@@ -1,3 +1,4 @@
+import { useState } from "react";
 import CurrencySelect from "./CurrencySelect";
 import SwapButton from "./SwapButton";
 import { useConverter } from "../hooks/useConverter";
@@ -14,7 +15,17 @@ export default function ConverterCard() {
     status,
     error,
     swap,
+    saveToHistory,
   } = useConverter();
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    const entry = saveToHistory();
+    if (entry) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 1600);
+    }
+  };
 
   return (
     <section className="board">
@@ -48,6 +59,14 @@ export default function ConverterCard() {
               {result.toLocaleString(undefined, { maximumFractionDigits: 2 })}
             </span>
             <span className="readout-currency">{to}</span>
+            <button
+              type="button"
+              className="save-button"
+              onClick={handleSave}
+              disabled={saved}
+            >
+              {saved ? "Saved" : "Save to history"}
+            </button>
           </>
         )}
       </div>

@@ -1,14 +1,23 @@
 # Exchange Desk — Currency Converter
 
-A small React + Vite currency converter. This is the **frontend-only** milestone:
-the UI, state, and layout are done, but exchange rates are mock data. Live
+A small React + Vite currency converter with 4 pages: Convert, Rates,
+History, and About. This is the **frontend-only** milestone: the UI,
+routing, and state are done, but exchange rates are mock data. Live
 rates/backend come in the next session.
 
 ## Stack
 
 - React 19 + Vite
+- React Router for the 4 pages
 - Plain CSS (no framework) — theme in `src/index.css`
 - No backend yet — see "Adding the API" below
+
+## Pages
+
+- **Convert** (`/`) — the main converter, with a "Save to history" action
+- **Rates** (`/rates`) — full table of one base currency against every supported currency
+- **History** (`/history`) — past saved conversions (stored in `localStorage` for now)
+- **About** (`/about`) — what the app does and the plan for the backend
 
 ## Running it
 
@@ -21,17 +30,28 @@ npm run dev
 
 ```
 src/
-  components/        UI pieces (ConverterCard, CurrencySelect, SwapButton, RateTicker)
+  pages/               One file per route: Home, Rates, History, About
+  components/
+    layout/
+      Layout.jsx        Shared header/nav/footer, renders the active page via <Outlet />
+      Nav.jsx           Tab navigation between the 4 pages
+    ConverterCard.jsx    Amount + currency selects + result (used on Home)
+    CurrencySelect.jsx
+    SwapButton.jsx
+    RateTicker.jsx
   hooks/
-    useConverter.js   All conversion state/logic, calls the service layer only
+    useConverter.js      All conversion state/logic, calls the service layer only
   services/
-    currencyApi.js    Service layer — currently returns mock data.
-                       This is the ONLY file that needs to change to go live.
+    currencyApi.js       Rates/conversion — currently mock data.
+                          The ONLY file to change to go live with a real API.
+    historyApi.js        Conversion history — currently localStorage.
+                          Swap for real API calls once a backend exists.
   data/
-    currencies.js     Static currency list + mock exchange rates
-  App.jsx
+    currencies.js         Static currency list + mock exchange rates
+  App.jsx                 Route definitions
+  main.jsx                Wraps App in BrowserRouter
   index.css
-.env.example           Copy to .env once real API keys/URLs are needed
+.env.example              Copy to .env once real API keys/URLs are needed
 ```
 
 The split between `hooks/` and `services/` is deliberate: components call the

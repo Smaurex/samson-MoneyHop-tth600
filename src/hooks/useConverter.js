@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { convertCurrency } from "../services/currencyApi";
+import { addHistoryEntry } from "../services/historyApi";
 
 /**
  * Owns all the state for the converter: amount, currency pair, result,
@@ -41,6 +42,14 @@ export function useConverter({ initialFrom = "USD", initialTo = "PHP", initialAm
     setTo(from);
   }, [from, to]);
 
+  // Saves the currently displayed result to history. Kept as an explicit,
+  // user-triggered action (rather than firing on every keystroke) so the
+  // history list stays meaningful instead of filling with in-progress typing.
+  const saveToHistory = useCallback(() => {
+    if (status !== "done" || result === null) return null;
+    return addHistoryEntry({ amount: Number(amount), from, to, result });
+  }, [status, result, amount, from, to]);
+
   return {
     amount,
     setAmount,
@@ -52,5 +61,6 @@ export function useConverter({ initialFrom = "USD", initialTo = "PHP", initialAm
     status,
     error,
     swap,
+    saveToHistory,
   };
 }
