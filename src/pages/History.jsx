@@ -1,34 +1,50 @@
 import { useEffect, useState } from "react";
-import { getHistory, clearHistory } from "../services/historyApi";
+import { getHistory } from "../services/historyApi";
 
 export default function History() {
   const [entries, setEntries] = useState([]);
+  const [status, setStatus] = useState("loading"); // loading | done | error
 
   useEffect(() => {
-    setEntries(getHistory());
-  }, []);
+    let cancelled = false;
 
-  const handleClear = () => {
-    clearHistory();
-    setEntries([]);
-  };
+    getHistory()
+      .then((data) => {
+        if (cancelled) return;
+        setEntries(data);
+        setStatus("done");
+      })
+      .catch(() => {
+        if (!cancelled) setStatus("error");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section className="board">
       <div className="board-row history-heading-row">
         <h2 className="board-heading">Saved conversions</h2>
-        {entries.length > 0 && (
-          <button type="button" className="text-button" onClick={handleClear}>
-            Clear
-          </button>
-        )}
       </div>
 
-      {entries.length === 0 ? (
+      {status === "loading" && <p className="readout-status">loading history…</p>}
+
+      {status === "error" && (
+        <p className="readout-error">
+          Couldn't reach the backend. Make sure the server in <code>backend/</code> is running
+          on port 3000.
+        </p>
+      )}
+
+      {status === "done" && entries.length === 0 && (
         <p className="readout-status">
           Nothing saved yet. Convert something on the Convert page and select "Save to history."
         </p>
-      ) : (
+      )}
+
+      {status === "done" && entries.length > 0 && (
         <ul className="history-list">
           {entries.map((entry) => (
             <li className="history-item" key={entry.id}>
@@ -50,7 +66,8 @@ export default function History() {
       )}
 
       <p className="disclaimer">
-        Stored on this device only for now. Once the backend is connected, history can sync across devices.
+        Loaded from the MySQL database via the backend. Only retrieve and create are wired up
+        for now, so there's no clear/delete yet.
       </p>
     </section>
   );

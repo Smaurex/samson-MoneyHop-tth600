@@ -1,50 +1,60 @@
 // ---------------------------------------------------------------------------
 // Conversion history service.
 //
-// For now this persists to localStorage, since there's no backend yet.
-// Next session, once a backend exists, swap the bodies of these two
-// functions for real API calls (e.g. GET/POST /history) — callers
-// (the History page, useConverter) don't need to change, since they only
-// depend on the function signatures below.
+// This now talks to the real backend in backend/ (see backend/server.js and
+// backend/db/exchange_desk_db.sql). Only GET (retrieve) and POST (create)
+// are implemented on the backend for now, so there is no delete/update here
+// yet — that can be added later once PUT/DELETE routes exist.
 // ---------------------------------------------------------------------------
 
-const STORAGE_KEY = "exchange-desk:history";
-const MAX_ENTRIES = 20;
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 /**
- * @returns {Array<{ id: string, amount: number, from: string, to: string, result: number, at: string }>}
+ * Retrieves saved conversions from the backend, newest first.
+ * @returns {Promise<Array<{ id: number, amount: number, from: string, to: string, result: number, at: string }>>}
  */
-export function getHistory() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
+export async function getHistory() {
+  const response = await fetch(`${API_BASE}/conversions`);
+
+  if (!response.ok) {
+    throw new Error("Could not load history from the server.");
   }
+
+  const rows = await response.json();
+
+  // Backend column names -> the shape the UI already expects.
+  return rows.map((row) => ({
+    id: row.id,
+    amount: Number(row.amount),
+    from: row.from_currency,
+    to: row.to_currency,
+    result: Number(row.result_amount),
+    at: row.created_at,
+  }));
 }
 
 /**
- * Records a completed conversion. Newest first, capped at MAX_ENTRIES.
- * TODO (next session): replace with `await fetch(`${API_BASE}/history`, { method: "POST", ... })`
+ * Saves a completed conversion to the backend.
+ * @returns {Promise<{ id: number, amount: number, from: string, to: string, result: number }>}
  */
-export function addHistoryEntry({ amount, from, to, result }) {
-  const entry = {
-    id: crypto.randomUUID(),
-    amount,
-    from,
-    to,
-    result,
-    at: new Date().toISOString(),
-  };
-  const existing = getHistory();
-  const updated = [entry, ...existing].slice(0, MAX_ENTRIES);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-  return entry;
-}
+export async function addHistoryEntry({ amount, from, to, result }) {
+  const response = await fetch(`${API_BASE}/conversions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      amount,
+      from_currency: from,
+      to_currency: to,
+      result_amount: result,
+    }),
+  });
 
-/**
- * TODO (next session): replace with `await fetch(`${API_BASE}/history`, { method: "DELETE" })`
- */
-export function clearHistory() {
-  localStorage.removeItem(STORAGE_KEY);
+  if (!response.ok) {
+    throw new Error("Could not save this conversion.");
+  }
+
+  const data = await response.json();
+  return { id: data.id, amount, from, to, result };
 }

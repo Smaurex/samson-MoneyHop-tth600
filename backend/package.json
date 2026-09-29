@@ -1,0 +1,14 @@
+{
+  "name": "exchange-desk-backend",
+  "version": "1.0.0",
+  "description": "Express + MySQL backend for the Exchange Desk currency converter (GET/POST conversions only, for now)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "mysql2": "^3.11.0"
+  }
+}

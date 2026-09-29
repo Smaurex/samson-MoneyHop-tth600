@@ -45,7 +45,7 @@ export function useConverter({ initialFrom = "USD", initialTo = "PHP", initialAm
   // Saves the currently displayed result to history. Kept as an explicit,
   // user-triggered action (rather than firing on every keystroke) so the
   // history list stays meaningful instead of filling with in-progress typing.
-  const saveToHistory = useCallback(() => {
+  const saveToHistory = useCallback(async () => {
     if (status !== "done" || result === null) return null;
     return addHistoryEntry({ amount: Number(amount), from, to, result });
   }, [status, result, amount, from, to]);

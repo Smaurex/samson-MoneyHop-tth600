@@ -18,12 +18,22 @@ export default function ConverterCard() {
     saveToHistory,
   } = useConverter();
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
-    const entry = saveToHistory();
-    if (entry) {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 1600);
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const entry = await saveToHistory();
+      if (entry) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 1600);
+      }
+    } catch (err) {
+      setSaveError(err.message ?? "Could not save. Is the backend running?");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -63,13 +73,15 @@ export default function ConverterCard() {
               type="button"
               className="save-button"
               onClick={handleSave}
-              disabled={saved}
+              disabled={saved || saving}
             >
-              {saved ? "Saved" : "Save to history"}
+              {saved ? "Saved" : saving ? "Saving…" : "Save to history"}
             </button>
           </>
         )}
       </div>
+
+      {saveError && <p className="readout-error">{saveError}</p>}
 
       <p className="disclaimer">
         Rates shown are placeholder values for development. Live rates connect next session.
