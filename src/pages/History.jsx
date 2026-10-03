@@ -66,8 +66,7 @@ export default function History() {
       )}
 
       <p className="disclaimer">
-        Loaded from the MySQL database via the backend. Only retrieve and create are wired up
-        for now, so there's no clear/delete yet.
+        Loaded from the MySQL database via the backend.
       </p>
     </section>
   );

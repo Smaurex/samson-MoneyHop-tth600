@@ -1,10 +1,8 @@
 // ---------------------------------------------------------------------------
 // Conversion history service.
 //
-// This now talks to the real backend in backend/ (see backend/server.js and
-// backend/db/exchange_desk_db.sql). Only GET (retrieve) and POST (create)
-// are implemented on the backend for now, so there is no delete/update here
-// yet — that can be added later once PUT/DELETE routes exist.
+// This talks to the real backend in backend/ (see backend/server.js and
+// backend/db/exchange_desk_db.sql).
 // ---------------------------------------------------------------------------
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
@@ -57,4 +55,47 @@ export async function addHistoryEntry({ amount, from, to, result }) {
 
   const data = await response.json();
   return { id: data.id, amount, from, to, result };
+}
+
+/**
+ * Updates a saved conversion.
+ * @returns {Promise<{ id: number, amount: number, from: string, to: string, result: number } | null>}
+ */
+export async function updateHistoryEntry(id, { amount, from, to, result }) {
+  const response = await fetch(`${API_BASE}/conversions/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      amount,
+      from_currency: from,
+      to_currency: to,
+      result_amount: result,
+    }),
+  });
+
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    throw new Error("Could not update this conversion.");
+  }
+
+  return { id, amount, from, to, result };
+}
+
+/**
+ * Deletes a saved conversion.
+ * @returns {Promise<boolean>} false when the conversion does not exist.
+ */
+export async function deleteHistoryEntry(id) {
+  const response = await fetch(`${API_BASE}/conversions/${id}`, {
+    method: "DELETE",
+  });
+
+  if (response.status === 404) return false;
+  if (!response.ok) {
+    throw new Error("Could not delete this conversion.");
+  }
+
+  return true;
 }

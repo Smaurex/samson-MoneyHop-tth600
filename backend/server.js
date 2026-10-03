@@ -108,6 +108,80 @@ app.post("/api/conversions", (req, res) => {
 
 
 // ========================================
+// PUT - Update Conversion
+// ========================================
+
+app.put("/api/conversions/:id", (req, res) => {
+
+    const id = Number(req.params.id);
+    const { amount, from_currency, to_currency, result_amount } = req.body;
+
+    if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({ message: "Invalid conversion ID" });
+    }
+
+    if (
+        amount == null ||
+        !from_currency ||
+        !to_currency ||
+        result_amount == null
+    ) {
+        return res.status(400).json({ message: "All conversion fields are required" });
+    }
+
+    const sql = `
+        UPDATE conversions
+        SET amount = ?, from_currency = ?, to_currency = ?, result_amount = ?
+        WHERE id = ?
+    `;
+
+    db.query(
+        sql,
+        [amount, from_currency, to_currency, result_amount, id],
+        (err, result) => {
+            if (err) {
+                return res.status(500).json({ message: "Database error" });
+            }
+
+            if (result.affectedRows === 0) {
+                return res.status(404).json({ message: "Conversion not found" });
+            }
+
+            res.json({ message: "Conversion updated successfully", id });
+        }
+    );
+
+});
+
+
+// ========================================
+// DELETE - Remove Conversion
+// ========================================
+
+app.delete("/api/conversions/:id", (req, res) => {
+
+    const id = Number(req.params.id);
+
+    if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({ message: "Invalid conversion ID" });
+    }
+
+    db.query("DELETE FROM conversions WHERE id = ?", [id], (err, result) => {
+        if (err) {
+            return res.status(500).json({ message: "Database error" });
+        }
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Conversion not found" });
+        }
+
+        res.json({ message: "Conversion deleted successfully", id });
+    });
+
+});
+
+
+// ========================================
 // Start Server
 // ========================================
 
